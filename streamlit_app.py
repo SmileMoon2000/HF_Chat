@@ -15,8 +15,13 @@ st.sidebar.title("🤖 Chat Configuration")
 api_key = st.sidebar.text_input("Hugging Face API Key", type="password")
 model_options = [
     "Qwen/Qwen2.5-Coder-32B-Instruct", 
-    "meta-llama/Llama-3.3-70B-Instruct", 
-    "deepseek-ai/DeepSeek-V2.5-1210"
+    "Qwen/Qwen2.5-72B-Instruct",
+    "google/gemma-2-2b-it",
+    "google/gemma-2-27b-it",
+    "meta-llama/Meta-Llama-3-8B-Instruct",
+    "meta-llama/Llama-3.2-1B-Instruct",
+    "meta-llama/Llama-3.2-3B-Instruct",
+    "microsoft/Phi-3.5-mini-instruct"
 ]
 selected_model = st.sidebar.selectbox("Select Model", model_options)
 
