@@ -40,14 +40,7 @@ def generate_response(messages, api_key, model, temperature, max_tokens):
             top_p=0.7,
             stream=True
         )
-        
-        # Collect streamed response
-        full_response = ""
-        for chunk in stream:
-            if chunk.choices[0].delta.content:
-                full_response += chunk.choices[0].delta.content
-        
-        return full_response
+        return stream  # Return the stream generator
     except Exception as e:
         return f"Error: {str(e)}"
 
@@ -71,24 +64,39 @@ if prompt := st.chat_input("Enter your message"):
     
     # Generate and display assistant response
     with st.chat_message("assistant"):
-        with st.spinner("Generating response..."):
-            # Only generate response if API key is provided
-            if api_key:
-                response = generate_response(
+        if api_key:
+            response_container = st.empty()  # Create an empty container for streaming
+            full_response = ""  # Variable to hold the complete response
+
+            with st.spinner("Generating response..."):
+                # Generate response stream
+                stream = generate_response(
                     st.session_state.messages, 
                     api_key, 
                     selected_model, 
                     temperature, 
                     max_tokens
                 )
-                st.markdown(response)
-                
-                # Add assistant response to chat history
-                st.session_state.messages.append(
-                    {"role": "assistant", "content": response}
-                )
-            else:
-                st.warning("Please enter a Hugging Face API key in the sidebar.")
+
+                if isinstance(stream, str) and stream.startswith("Error:"):
+                    # Handle errors during API calls
+                    st.error(stream)
+                else:
+                    try:
+                        # Display chunks as they arrive
+                        for chunk in stream:
+                            if chunk.choices[0].delta.content:
+                                full_response += chunk.choices[0].delta.content
+                                response_container.markdown(full_response)  # Update the container
+                        
+                        # Add final response to chat history
+                        st.session_state.messages.append(
+                            {"role": "assistant", "content": full_response}
+                        )
+                    except Exception as e:
+                        st.error(f"Error while streaming response: {str(e)}")
+        else:
+            st.warning("Please enter a Hugging Face API key in the sidebar.")
 
 # Additional UI customization
 st.sidebar.markdown("---")
